@@ -35,6 +35,7 @@ const App: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [settings, setSettings] = useState<UserSettings>({
+    userName: '',
     avgCycleLength: 28,
     avgPeriodLength: 5,
     lastPeriodStartManual: undefined,
@@ -136,15 +137,17 @@ const App: React.FC = () => {
           <div className="space-y-8 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <section className="bg-white rounded-[3rem] p-10 text-center shadow-2xl border border-theme-soft relative overflow-hidden">
                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-theme-primary to-indigo-400"></div>
-               <h2 className="text-[10px] font-black uppercase tracking-widest text-theme-primary opacity-70 mb-4">Status do Ciclo</h2>
+               <h2 className="text-[10px] font-black uppercase tracking-widest text-theme-primary opacity-70 mb-4">
+                 Olá, {settings.userName || 'Luna'}! ✨
+               </h2>
                <div className="text-5xl font-serif font-black text-gray-800 leading-tight">
                  {nextPeriodIn !== null ? (
                    nextPeriodIn > 0 ? <><span className="text-theme-primary">{nextPeriodIn}</span> dias</> : 
                    nextPeriodIn === 0 ? <span className="text-theme-primary">Menstruação hoje! 🩸</span> : <span className="text-orange-600">Atrasada</span>
-                 ) : "Olá, Luna!"}
+                 ) : "Bem-vinda!"}
                </div>
                <p className="mt-4 text-gray-600 font-extrabold text-sm">
-                 {nextPeriodIn !== null ? `Próximo: ${format(parseISO(stats.nextPeriodDate!), "dd/MM", { locale: ptBR })}` : "Toque em Perfil para configurar."}
+                 {nextPeriodIn !== null ? `Próximo ciclo: ${format(parseISO(stats.nextPeriodDate!), "dd/MM", { locale: ptBR })}` : "Configure seu ciclo no perfil."}
                </p>
             </section>
 
@@ -158,7 +161,7 @@ const App: React.FC = () => {
                 </div>
                 <p className="text-white text-sm leading-relaxed mb-6 font-bold">{CYCLE_PHASES[currentPhase].description}</p>
                 <div className="bg-black/15 backdrop-blur-md p-5 rounded-3xl border border-white/30">
-                   <p className="text-[9px] font-black uppercase tracking-widest text-white/80 mb-1 font-bold">Dica de hoje</p>
+                   <p className="text-[9px] font-black uppercase tracking-widest text-white/80 mb-1 font-bold">Dica para você</p>
                    <p className="font-black text-white">{CYCLE_PHASES[currentPhase].advice}</p>
                 </div>
               </section>
@@ -258,6 +261,18 @@ const App: React.FC = () => {
              <h3 className="text-3xl font-serif font-black text-theme-primary px-2">Configurações</h3>
              
              <div className="bg-white rounded-[2.5rem] p-8 shadow-2xl border border-theme-soft space-y-10">
+                {/* Nome do Usuário */}
+                <section className="space-y-3">
+                  <label className="text-[10px] font-black uppercase text-theme-primary tracking-widest block font-black">Como quer ser chamada?</label>
+                  <input 
+                    type="text" 
+                    placeholder="Seu nome aqui..."
+                    value={settings.userName || ''} 
+                    onChange={e => setSettings(p => ({...p, userName: e.target.value}))} 
+                    className="w-full h-16 px-6 rounded-2xl bg-gray-50 border-2 border-gray-100 font-black text-gray-800 focus:border-theme-primary outline-none transition-all" 
+                  />
+                </section>
+
                 {/* Segurança e Dados */}
                 <section className="bg-theme-light p-6 rounded-[2rem] border-2 border-theme-soft">
                   <h4 className="text-[10px] font-black uppercase text-theme-primary tracking-widest mb-4">Segurança e Backup</h4>

@@ -1,4 +1,3 @@
-
 export type FlowIntensity = 'escasso' | 'leve' | 'moderado' | 'intenso';
 
 export type CyclePhaseType = 'menstrual' | 'folicular' | 'ovulatoria' | 'lutea';
@@ -57,6 +56,7 @@ export interface DayLog {
 }
 
 export interface UserSettings {
+  userName?: string;
   avgCycleLength: number;
   avgPeriodLength: number;
   lastPeriodStartManual?: string;
