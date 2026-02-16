@@ -74,13 +74,13 @@ export interface CycleStats {
 }
 
 export const SYMPTOMS = [
-  "Cólica", "Inchaço", "Dor de Cabeça", "Acne", "Dor Lombar", 
-  "Seios Sensíveis", "Fadiga", "Náusea", "Insônia", "Desejos Doces",
-  "Tontura", "Calafrios", "Ansiedade", "Foco Baixo"
+  "Cólica 😫", "Inchaço 🎈", "Dor de Cabeça 🤕", "Acne 🧼", "Dor Lombar ⚡", 
+  "Seios Sensíveis 🍒", "Fadiga 😴", "Náusea 🤢", "Insônia 🦉", "Desejos Doces 🍫",
+  "Tontura 😵", "Calafrios 🥶", "Ansiedade 😟", "Foco Baixo 🌫️"
 ];
 
 export const MOODS = [
-  "Feliz", "Triste", "Ansiosa", "Irritada", "Calma", 
-  "Energizada", "Cansada", "Sensível", "Frustrada", "Produtiva",
-  "Inspirada", "Preguiçosa", "Amorosa", "Distante"
+  "Feliz 😊", "Triste 😢", "Ansiosa 😰", "Irritada 😡", "Calma 🧘", 
+  "Energizada ⚡", "Cansada 😴", "Sensível 🥺", "Frustrada 😤", "Produtiva 📈",
+  "Inspirada ✨", "Preguiçosa 🦥", "Amorosa 🥰", "Distante ☁️"
 ];

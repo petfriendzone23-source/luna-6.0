@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -45,15 +44,21 @@ export const DayModal: React.FC<DayModalProps> = ({ date, existingLog, onSave, o
           <section className="space-y-4">
             <h4 className="text-[10px] font-black text-theme-primary uppercase tracking-widest">Seu Humor</h4>
             <div className="grid grid-cols-2 gap-3">
-              {MOODS.map((m) => (
-                <button
-                  key={m}
-                  onClick={() => handleToggle(selectedMoods, m, setSelectedMoods)}
-                  className={`p-4 rounded-2xl text-xs font-bold transition-all border-2 ${selectedMoods.includes(m) ? 'bg-amber-400 border-amber-300 text-white shadow-md' : 'bg-gray-50 border-transparent text-gray-500 hover:bg-white hover:border-gray-200'}`}
-                >
-                  {m}
-                </button>
-              ))}
+              {MOODS.map((m) => {
+                const parts = m.split(' ');
+                const label = parts[0];
+                const emoji = parts[1];
+                return (
+                  <button
+                    key={m}
+                    onClick={() => handleToggle(selectedMoods, m, setSelectedMoods)}
+                    className={`p-4 rounded-2xl text-sm font-black transition-all border-2 flex flex-col items-center gap-2 ${selectedMoods.includes(m) ? 'bg-amber-400 border-amber-300 text-white shadow-md scale-105' : 'bg-gray-50 border-transparent text-gray-500 hover:bg-white hover:border-gray-200'}`}
+                  >
+                    <span className="text-2xl">{emoji}</span>
+                    <span className="text-[10px] uppercase tracking-wider">{label}</span>
+                  </button>
+                );
+              })}
             </div>
           </section>
 
@@ -64,7 +69,7 @@ export const DayModal: React.FC<DayModalProps> = ({ date, existingLog, onSave, o
                 <button
                   key={s}
                   onClick={() => handleToggle(selectedSymptoms, s, setSelectedSymptoms)}
-                  className={`px-4 py-2 rounded-xl text-[10px] font-bold transition-all border-2 ${selectedSymptoms.includes(s) ? 'bg-theme-primary border-theme-primary text-white' : 'bg-gray-50 border-transparent text-gray-400 hover:border-theme-soft'}`}
+                  className={`px-4 py-3 rounded-xl text-[10px] font-black transition-all border-2 flex items-center gap-2 ${selectedSymptoms.includes(s) ? 'bg-theme-primary border-theme-primary text-white shadow-sm' : 'bg-gray-50 border-transparent text-gray-400 hover:border-theme-soft'}`}
                 >
                   {s}
                 </button>
@@ -73,7 +78,7 @@ export const DayModal: React.FC<DayModalProps> = ({ date, existingLog, onSave, o
           </section>
 
           <textarea 
-            className="w-full p-6 rounded-[2rem] bg-gray-50 border-none outline-none text-sm min-h-[120px] focus:ring-2 focus:ring-theme-soft transition-all" 
+            className="w-full p-6 rounded-[2rem] bg-gray-50 border-none outline-none text-sm min-h-[120px] focus:ring-2 focus:ring-theme-soft transition-all font-medium" 
             placeholder="Anotações pessoais..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
