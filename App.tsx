@@ -42,6 +42,8 @@ const App: React.FC = () => {
     theme: 'rose'
   });
 
+  const appName = settings.userName || 'Luna';
+
   // Carregar dados iniciais
   useEffect(() => {
     const savedLogs = localStorage.getItem('luna_logs_v5');
@@ -63,7 +65,10 @@ const App: React.FC = () => {
     root.style.setProperty('--primary-light', config.light);
     root.style.setProperty('--primary-soft', config.soft);
     root.style.setProperty('--bg-app', config.bg);
-  }, [settings]);
+    
+    // Atualiza o título da página com o nome do usuário
+    document.title = `${appName} - Controle Menstrual`;
+  }, [settings, appName]);
 
   const stats: CycleStats = useMemo(() => calculateCycleStats(logs, settings), [logs, settings]);
   const calendarDays = useMemo(() => getCalendarDays(currentDate), [currentDate]);
@@ -108,7 +113,7 @@ const App: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `luna-backup-${format(new Date(), 'yyyy-MM-dd')}.json`;
+    a.download = `${appName.toLowerCase()}-backup-${format(new Date(), 'yyyy-MM-dd')}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -124,7 +129,7 @@ const App: React.FC = () => {
         if (data.settings) setSettings(data.settings);
         alert('Dados importados com sucesso! ✨');
       } catch (err) {
-        alert('Erro ao importar arquivo. Certifique-se de que é um backup Luna válido.');
+        alert(`Erro ao importar arquivo. Certifique-se de que é um backup ${appName} válido.`);
       }
     };
     reader.readAsText(file);
@@ -138,7 +143,7 @@ const App: React.FC = () => {
             <section className="bg-white rounded-[3rem] p-10 text-center shadow-2xl border border-theme-soft relative overflow-hidden">
                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-theme-primary to-indigo-400"></div>
                <h2 className="text-[10px] font-black uppercase tracking-widest text-theme-primary opacity-70 mb-4">
-                 Olá, {settings.userName || 'Luna'}! ✨
+                 Olá, {appName}! ✨
                </h2>
                <div className="text-5xl font-serif font-black text-gray-800 leading-tight">
                  {nextPeriodIn !== null ? (
@@ -232,7 +237,7 @@ const App: React.FC = () => {
         const historyLogs = (Object.values(logs) as DayLog[]).sort((a: DayLog, b: DayLog) => b.date.localeCompare(a.date));
         return (
           <div className="space-y-6 pb-32 animate-in slide-in-from-right-4 duration-500">
-             <h3 className="text-3xl font-serif font-black text-theme-primary px-2">Histórico Luna</h3>
+             <h3 className="text-3xl font-serif font-black text-theme-primary px-2">Histórico de {appName}</h3>
              {historyLogs.length === 0 ? (
                <div className="p-16 text-center text-gray-400 font-bold bg-white rounded-[3rem] border-4 border-dashed border-gray-100">
                  Sem registros salvos.<br/>Toque no calendário para começar.
@@ -320,7 +325,7 @@ const App: React.FC = () => {
                   </Button>
                 </div>
 
-                <p className="text-[9px] text-center font-bold text-gray-300 uppercase tracking-widest">Luna v5.0 • Dados 100% Privados</p>
+                <p className="text-[9px] text-center font-bold text-gray-300 uppercase tracking-widest">{appName} v5.0 • Dados 100% Privados</p>
              </div>
           </div>
         );
@@ -334,9 +339,9 @@ const App: React.FC = () => {
       <header className="px-8 py-12 flex items-center justify-between max-w-2xl mx-auto">
         <div className="flex items-center gap-4 cursor-pointer" onClick={() => setActiveScreen('inicio')}>
           <div className="w-12 h-12 bg-theme-primary rounded-2xl flex items-center justify-center text-white shadow-2xl rotate-6 border-b-4 border-black/20">
-             <span className="text-2xl font-serif font-black">L</span>
+             <span className="text-2xl font-serif font-black">{(appName[0] || 'L').toUpperCase()}</span>
           </div>
-          <h1 className="text-3xl font-serif font-black text-gray-800 tracking-tight">Luna</h1>
+          <h1 className="text-3xl font-serif font-black text-gray-800 tracking-tight">{appName}</h1>
         </div>
         <div className="text-[9px] font-black text-theme-primary/50 uppercase tracking-[0.2em]">Salvamento Ativo</div>
       </header>
@@ -357,7 +362,7 @@ const App: React.FC = () => {
                   {format(parseISO(selectedDate), "EEEE, dd/MM", { locale: ptBR })}
                 </p>
                 <h4 className="text-4xl font-serif font-black text-gray-800 leading-tight">
-                  {getDayStatus(parseISO(selectedDate)).isMenstruation ? "Sua Menstruação 🩸" : "Seu Dia Luna ✨"}
+                  {getDayStatus(parseISO(selectedDate)).isMenstruation ? "Sua Menstruação 🩸" : `Dia de ${appName} ✨`}
                 </h4>
               </div>
 
@@ -373,7 +378,7 @@ const App: React.FC = () => {
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 px-6 pb-8 pointer-events-none">
         <div className="glass-nav rounded-[3rem] shadow-[0_-15px_40px_rgba(0,0,0,0.08)] p-2.5 flex justify-between items-center max-w-md mx-auto pointer-events-auto border-4 border-white/50">
-          <NavItem active={activeScreen === 'inicio'} onClick={() => setActiveScreen('inicio')} label="Home" icon="🏠" />
+          <NavItem active={activeScreen === 'inicio'} onClick={() => setActiveScreen('inicio'} label="Home" icon="🏠" />
           <NavItem active={activeScreen === 'calendario'} onClick={() => setActiveScreen('calendario')} label="Agenda" icon="📅" />
           <NavItem active={activeScreen === 'historico'} onClick={() => setActiveScreen('historico')} label="Diário" icon="📖" />
           <NavItem active={activeScreen === 'ajustes'} onClick={() => setActiveScreen('ajustes')} label="Perfil" icon="👤" />
