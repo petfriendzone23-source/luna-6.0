@@ -5,11 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#fffafb">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Luna - Diário de Bem-Estar</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #f43f5e;
@@ -19,54 +17,51 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-app);
-            color: #374151;
-            user-select: none;
+            color: #1f2937;
             -webkit-tap-highlight-color: transparent;
-            transition: background-color 0.5s ease;
         }
 
-        .font-serif {
-            font-family: 'Playfair Display', serif;
-        }
-
-        .bg-theme-primary { background-color: var(--primary); }
-        .text-theme-primary { color: var(--primary); }
-        .border-theme-primary { border-color: var(--primary); }
-        .bg-theme-light { background-color: var(--primary-light); }
-        .bg-theme-soft { background-color: var(--primary-soft); }
-
-        ::-webkit-scrollbar { display: none; }
-        * { -ms-overflow-style: none; scrollbar-width: none; transition: border-color 0.3s ease, color 0.3s ease, background-color 0.3s ease; }
+        .font-serif { font-family: 'Playfair Display', serif; }
 
         @keyframes pulse-ring {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 0.4; }
-            100% { transform: scale(0.95); opacity: 0.8; }
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(244, 63, 94, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
         }
-        .animate-pulse-ring { animation: pulse-ring 2s infinite ease-in-out; }
+        .animate-today { animation: pulse-ring 2s infinite; }
 
-        @keyframes bounce-subtle {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-3px); }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.5);
         }
-        .animate-bounce-subtle { animation: bounce-subtle 2s infinite ease-in-out; }
+
+        .calendar-card {
+            background: linear-gradient(145deg, #ffffff, #f9fafb);
+            box-shadow: 20px 20px 60px #d1d1d1, -20px -20px 60px #ffffff;
+        }
     </style>
-<script type="importmap">
+    <script type="importmap">
 {
   "imports": {
-    "recharts": "https://esm.sh/recharts@^2.15.0",
-    "react": "https://esm.sh/react@^19.0.0",
-    "react-dom": "https://esm.sh/react-dom@^19.0.0",
-    "date-fns": "https://esm.sh/date-fns@^4.1.0",
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "date-fns": "https://esm.sh/date-fns@4.1.0",
+    "date-fns/locale": "https://esm.sh/date-fns@4.1.0/locale",
+    "recharts": "https://esm.sh/recharts@2.15.0",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "react/": "https://esm.sh/react@^19.2.4/"
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "date-fns/": "https://esm.sh/date-fns@^4.1.0/"
   }
 }
 </script>
 </head>
 <body>
     <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
 </body>
 </html>
