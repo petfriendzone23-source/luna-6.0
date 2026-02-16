@@ -1,0 +1,17 @@
+{
+  "name": "Luna Controle Menstrual",
+  "short_name": "Luna",
+  "description": "Seu diário e calendário menstrual privado.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fffafb",
+  "theme_color": "#f43f5e",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3652/3652191.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
