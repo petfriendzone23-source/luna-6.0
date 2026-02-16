@@ -380,14 +380,26 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen transition-all duration-500 overflow-x-hidden" style={{ backgroundColor: 'var(--bg-app)' }}>
-      <header className="px-8 py-12 flex items-center justify-between max-w-2xl mx-auto">
+      <header className="px-8 py-10 flex items-center justify-between max-w-2xl mx-auto">
         <div className="flex items-center gap-4 cursor-pointer" onClick={() => setActiveScreen('inicio')}>
-          <div className="w-12 h-12 bg-theme-primary rounded-2xl flex items-center justify-center text-white shadow-2xl rotate-6 border-b-4 border-black/20">
-             <span className="text-2xl font-serif font-black">{(appName[0] || 'L').toUpperCase()}</span>
+          <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-xl border-4 border-white overflow-hidden">
+             <img src="/icon.png" alt="Luna Logo" className="w-full h-full object-cover" onError={(e) => {
+               (e.target as HTMLImageElement).style.display = 'none';
+               const parent = (e.target as HTMLImageElement).parentElement;
+               if (parent) {
+                 const span = document.createElement('span');
+                 span.className = "text-2xl font-serif font-black text-theme-primary";
+                 span.innerText = (appName[0] || 'L').toUpperCase();
+                 parent.appendChild(span);
+                 parent.classList.add('bg-theme-primary');
+                 span.classList.remove('text-theme-primary');
+                 span.classList.add('text-white');
+               }
+             }} />
           </div>
           <h1 className="text-3xl font-serif font-black text-gray-800 tracking-tight">{appName}</h1>
         </div>
-        <div className="text-[9px] font-black text-theme-primary/50 uppercase tracking-[0.2em]">Salvamento Ativo</div>
+        <div className="text-[9px] font-black text-theme-primary/50 uppercase tracking-[0.2em] bg-theme-light px-3 py-1 rounded-full">Privado & Seguro</div>
       </header>
 
       <main className="max-w-2xl mx-auto px-6">
