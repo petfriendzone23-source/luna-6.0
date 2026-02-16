@@ -24,6 +24,20 @@ export const getCalendarDays = (currentDate: Date) => {
   return eachDayOfInterval({ start, end });
 };
 
+export const getPregnancyChance = (date: Date, stats: CycleStats): 'Baixa' | 'Média' | 'Alta' => {
+  if (!stats.ovulationDate) return 'Baixa';
+  const ovulation = parseISO(stats.ovulationDate);
+  const diff = differenceInDays(date, ovulation);
+  
+  // Janela fértil padrão: 5 dias antes da ovulação até 1 dia depois
+  // Alta: Dia da ovulação e 2 dias antes
+  if (diff === 0 || diff === -1 || diff === -2) return 'Alta';
+  // Média: 3 a 5 dias antes da ovulação
+  if (diff === -3 || diff === -4 || diff === -5) return 'Média';
+  // Baixa: Restante
+  return 'Baixa';
+};
+
 export const getCyclePhase = (dayOfCycle: number, stats: CycleStats): CyclePhaseType => {
   const { avgPeriodLength, avgCycleLength } = stats;
   
@@ -92,7 +106,7 @@ export const calculateCycleStats = (logs: Record<string, DayLog>, settings?: Use
   const ovulationDate = formatDate(ovulationDateObj);
   
   const fertileWindow = [];
-  for (let i = -3; i <= 1; i++) {
+  for (let i = -5; i <= 1; i++) {
     fertileWindow.push(formatDate(addDays(ovulationDateObj, i)));
   }
 

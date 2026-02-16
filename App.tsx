@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   format, 
@@ -13,7 +14,7 @@ import { ptBR } from 'date-fns/locale';
 import { DayModal } from './components/DayModal';
 import { Button } from './components/Button';
 import { DayLog, CycleStats, UserSettings, CYCLE_PHASES, CyclePhaseType, AppTheme } from './types';
-import { getCalendarDays, formatDate, calculateCycleStats, getCyclePhase } from './utils/dateUtils';
+import { getCalendarDays, formatDate, calculateCycleStats, getCyclePhase, getPregnancyChance } from './utils/dateUtils';
 
 type Screen = 'inicio' | 'calendario' | 'historico' | 'ajustes';
 
@@ -83,6 +84,11 @@ const App: React.FC = () => {
     return getCyclePhase(stats.currentDayOfCycle, stats);
   }, [stats]);
 
+  const currentPregnancyChance = useMemo(() => {
+    if (!stats.lastPeriodStart) return null;
+    return getPregnancyChance(startOfToday(), stats);
+  }, [stats]);
+
   const handleDayClick = (dKey: string) => {
     setSelectedDate(dKey);
     setIsQuickViewOpen(true);
@@ -95,6 +101,7 @@ const App: React.FC = () => {
     const isPredicted = stats.nextPeriodDate === dKey;
     const isOvulation = stats.ovulationDate === dKey;
     const isFertile = stats.fertileWindow.includes(dKey);
+    const pregnancyChance = getPregnancyChance(day, stats);
     
     let dayOfCycle = null;
     if (stats.lastPeriodStart) {
@@ -103,7 +110,7 @@ const App: React.FC = () => {
     }
     const phase = dayOfCycle ? getCyclePhase(dayOfCycle, stats) : null;
 
-    return { isMenstruation, isPredicted, isOvulation, isFertile, log, dKey, phase, dayOfCycle };
+    return { isMenstruation, isPredicted, isOvulation, isFertile, log, dKey, phase, dayOfCycle, pregnancyChance };
   };
 
   // Funções de Backup e Reset
@@ -169,9 +176,19 @@ const App: React.FC = () => {
                    nextPeriodIn === 0 ? <span className="text-theme-primary">Menstruação hoje! 🩸</span> : <span className="text-orange-600">Atrasada</span>
                  ) : "Bem-vinda!"}
                </div>
-               <p className="mt-4 text-gray-600 font-extrabold text-sm">
-                 {nextPeriodIn !== null ? `Próximo ciclo: ${format(parseISO(stats.nextPeriodDate!), "dd/MM", { locale: ptBR })}` : "Configure seu ciclo no perfil."}
-               </p>
+               <div className="mt-6 flex flex-col items-center gap-2">
+                 <p className="text-gray-600 font-extrabold text-sm">
+                   {nextPeriodIn !== null ? `Próximo ciclo: ${format(parseISO(stats.nextPeriodDate!), "dd/MM", { locale: ptBR })}` : "Configure seu ciclo no perfil."}
+                 </p>
+                 {currentPregnancyChance && (
+                   <div className="mt-2 px-4 py-2 bg-theme-light rounded-full border border-theme-soft">
+                     <p className="text-[10px] font-black uppercase tracking-widest text-theme-primary mb-0.5">Chance de Engravidar</p>
+                     <p className={`text-sm font-black ${currentPregnancyChance === 'Alta' ? 'text-rose-600' : currentPregnancyChance === 'Média' ? 'text-teal-600' : 'text-gray-400'}`}>
+                       {currentPregnancyChance}
+                     </p>
+                   </div>
+                 )}
+               </div>
             </section>
 
             {currentPhase && (
@@ -353,7 +370,7 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                <p className="text-[9px] text-center font-bold text-gray-300 uppercase tracking-widest">{appName} v5.0 • Dados 100% Privados</p>
+                <p className="text-[9px] text-center font-bold text-gray-300 uppercase tracking-widest">{appName} v5.1 • Dados 100% Privados</p>
              </div>
           </div>
         );
@@ -385,13 +402,20 @@ const App: React.FC = () => {
                 <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
 
-              <div className="mb-12">
+              <div className="mb-10">
                 <p className="text-[11px] font-black text-theme-primary uppercase tracking-widest mb-3">
                   {format(parseISO(selectedDate), "EEEE, dd/MM", { locale: ptBR })}
                 </p>
                 <h4 className="text-4xl font-serif font-black text-gray-800 leading-tight">
                   {getDayStatus(parseISO(selectedDate)).isMenstruation ? "Sua Menstruação 🩸" : `Dia de ${appName} ✨`}
                 </h4>
+                
+                <div className="mt-6 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Chance de Engravidar</p>
+                  <p className={`text-lg font-black ${getDayStatus(parseISO(selectedDate)).pregnancyChance === 'Alta' ? 'text-rose-600' : getDayStatus(parseISO(selectedDate)).pregnancyChance === 'Média' ? 'text-teal-600' : 'text-gray-400'}`}>
+                    {getDayStatus(parseISO(selectedDate)).pregnancyChance}
+                  </p>
+                </div>
               </div>
 
               <div className="flex flex-col gap-4">
