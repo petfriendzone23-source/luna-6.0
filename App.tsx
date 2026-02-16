@@ -106,7 +106,7 @@ const App: React.FC = () => {
     return { isMenstruation, isPredicted, isOvulation, isFertile, log, dKey, phase, dayOfCycle };
   };
 
-  // Funções de Backup
+  // Funções de Backup e Reset
   const exportBackup = () => {
     const data = { logs, settings, version: '5.0', exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -133,6 +133,24 @@ const App: React.FC = () => {
       }
     };
     reader.readAsText(file);
+  };
+
+  const resetAllData = () => {
+    const confirmed = window.confirm("ATENÇÃO: Isso apagará todos os seus registros, sintomas e configurações permanentemente. Tem certeza?");
+    if (confirmed) {
+      localStorage.removeItem('luna_logs_v5');
+      localStorage.removeItem('luna_settings_v5');
+      setLogs({});
+      setSettings({
+        userName: '',
+        avgCycleLength: 28,
+        avgPeriodLength: 5,
+        lastPeriodStartManual: undefined,
+        theme: 'rose'
+      });
+      setActiveScreen('inicio');
+      alert("Todos os dados foram resetados.");
+    }
   };
 
   const renderScreen = () => {
@@ -319,10 +337,20 @@ const App: React.FC = () => {
                    </div>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-4 space-y-4">
                   <Button className="w-full h-20 rounded-[2rem] font-black text-lg shadow-2xl" onClick={() => alert('Configurações salvas localmente! ✨')}>
                     SALVAR TUDO
                   </Button>
+                  
+                  <div className="pt-10">
+                    <p className="text-[10px] font-black uppercase text-red-500 tracking-widest block mb-4">Zona de Perigo</p>
+                    <button 
+                      onClick={resetAllData}
+                      className="w-full py-4 rounded-2xl border-2 border-red-100 text-red-500 text-xs font-black uppercase tracking-widest hover:bg-red-50 transition-colors"
+                    >
+                      Resetar todos os dados do App
+                    </button>
+                  </div>
                 </div>
 
                 <p className="text-[9px] text-center font-bold text-gray-300 uppercase tracking-widest">{appName} v5.0 • Dados 100% Privados</p>
@@ -378,7 +406,7 @@ const App: React.FC = () => {
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 px-6 pb-8 pointer-events-none">
         <div className="glass-nav rounded-[3rem] shadow-[0_-15px_40px_rgba(0,0,0,0.08)] p-2.5 flex justify-between items-center max-w-md mx-auto pointer-events-auto border-4 border-white/50">
-          <NavItem active={activeScreen === 'inicio'} onClick={() => setActiveScreen('inicio'} label="Home" icon="🏠" />
+          <NavItem active={activeScreen === 'inicio'} onClick={() => setActiveScreen('inicio')} label="Home" icon="🏠" />
           <NavItem active={activeScreen === 'calendario'} onClick={() => setActiveScreen('calendario')} label="Agenda" icon="📅" />
           <NavItem active={activeScreen === 'historico'} onClick={() => setActiveScreen('historico')} label="Diário" icon="📖" />
           <NavItem active={activeScreen === 'ajustes'} onClick={() => setActiveScreen('ajustes')} label="Perfil" icon="👤" />
