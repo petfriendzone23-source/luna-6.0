@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   format, 
@@ -370,7 +369,7 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                <p className="text-[9px] text-center font-bold text-gray-300 uppercase tracking-widest">{appName} v5.1 • Dados 100% Privados</p>
+                <p className="text-[9px] text-center font-bold text-gray-300 uppercase tracking-widest">BY RENATO LUNA 2.0 PRE ALFA • Dados 100% Privados</p>
              </div>
           </div>
         );
