@@ -10,13 +10,13 @@
   "scope": "/",
   "icons": [
     {
-      "src": "/icon.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/3652/3652191.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/3652/3652191.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -25,7 +25,7 @@
   "categories": ["medical", "health"],
   "screenshots": [
     {
-      "src": "/icon.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/3652/3652191.png",
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "wide"

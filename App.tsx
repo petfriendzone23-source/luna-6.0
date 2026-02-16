@@ -12,18 +12,17 @@ import {
 import { ptBR } from 'date-fns/locale';
 import { DayModal } from './components/DayModal';
 import { Button } from './components/Button';
-import { Logo, LunaBrandText } from './components/Logo';
 import { DayLog, CycleStats, UserSettings, CYCLE_PHASES, CyclePhaseType, AppTheme } from './types';
 import { getCalendarDays, formatDate, calculateCycleStats, getCyclePhase, getPregnancyChance } from './utils/dateUtils';
 
 type Screen = 'inicio' | 'calendario' | 'historico' | 'ajustes';
 
 const THEMES: Record<AppTheme, { primary: string; light: string; soft: string; bg: string }> = {
-  rose: { primary: '#c18c8e', light: '#fcf4f4', soft: '#f3d8d9', bg: '#fffafb' },
-  sky: { primary: '#9dbcd4', light: '#f4f8fc', soft: '#e5edf3', bg: '#f4f8fc' },
-  emerald: { primary: '#9db8a6', light: '#f4fcf6', soft: '#e5f3e9', bg: '#f4fcf6' },
-  violet: { primary: '#a69db8', light: '#f6f4fc', soft: '#e9e5f3', bg: '#f6f4fc' },
-  midnight: { primary: '#6e6a6b', light: '#f9f9f9', soft: '#e5e5e5', bg: '#f9f9f9' },
+  rose: { primary: '#f43f5e', light: '#fff1f2', soft: '#ffe4e6', bg: '#fffafb' },
+  sky: { primary: '#0ea5e9', light: '#f0f9ff', soft: '#e0f2fe', bg: '#f0f9ff' },
+  emerald: { primary: '#10b981', light: '#f0fdf4', soft: '#d1fae5', bg: '#f0fdf4' },
+  violet: { primary: '#8b5cf6', light: '#f5f3ff', soft: '#ede9fe', bg: '#f5f3ff' },
+  midnight: { primary: '#475569', light: '#f8fafc', soft: '#f1f5f9', bg: '#f8fafc' },
 };
 
 const App: React.FC = () => {
@@ -45,6 +44,7 @@ const App: React.FC = () => {
 
   const appName = settings.userName || 'Luna';
 
+  // Carregar dados iniciais
   useEffect(() => {
     const savedLogs = localStorage.getItem('luna_logs_v5');
     if (savedLogs) try { setLogs(JSON.parse(savedLogs)); } catch (e) {}
@@ -52,6 +52,7 @@ const App: React.FC = () => {
     if (savedSettings) try { setSettings(JSON.parse(savedSettings)); } catch (e) {}
   }, []);
 
+  // Persistência Automática
   useEffect(() => {
     localStorage.setItem('luna_logs_v5', JSON.stringify(logs));
   }, [logs]);
@@ -64,6 +65,8 @@ const App: React.FC = () => {
     root.style.setProperty('--primary-light', config.light);
     root.style.setProperty('--primary-soft', config.soft);
     root.style.setProperty('--bg-app', config.bg);
+    
+    // Atualiza o título da página com o nome do usuário
     document.title = `${appName} - Controle Menstrual`;
   }, [settings, appName]);
 
@@ -80,6 +83,11 @@ const App: React.FC = () => {
     return getCyclePhase(stats.currentDayOfCycle, stats);
   }, [stats]);
 
+  const currentPregnancyChance = useMemo(() => {
+    if (!stats.lastPeriodStart) return null;
+    return getPregnancyChance(startOfToday(), stats);
+  }, [stats]);
+
   const handleDayClick = (dKey: string) => {
     setSelectedDate(dKey);
     setIsQuickViewOpen(true);
@@ -93,13 +101,62 @@ const App: React.FC = () => {
     const isOvulation = stats.ovulationDate === dKey;
     const isFertile = stats.fertileWindow.includes(dKey);
     const pregnancyChance = getPregnancyChance(day, stats);
+    
     let dayOfCycle = null;
     if (stats.lastPeriodStart) {
         const diff = differenceInDays(day, parseISO(stats.lastPeriodStart)) + 1;
         dayOfCycle = diff > 0 ? ((diff - 1) % stats.avgCycleLength) + 1 : null;
     }
     const phase = dayOfCycle ? getCyclePhase(dayOfCycle, stats) : null;
+
     return { isMenstruation, isPredicted, isOvulation, isFertile, log, dKey, phase, dayOfCycle, pregnancyChance };
+  };
+
+  // Funções de Backup e Reset
+  const exportBackup = () => {
+    const data = { logs, settings, version: '5.0', exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${appName.toLowerCase()}-backup-${format(new Date(), 'yyyy-MM-dd')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target?.result as string);
+        if (data.logs) setLogs(data.logs);
+        if (data.settings) setSettings(data.settings);
+        alert('Dados importados com sucesso! ✨');
+      } catch (err) {
+        alert(`Erro ao importar arquivo. Certifique-se de que é um backup ${appName} válido.`);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const resetAllData = () => {
+    const confirmed = window.confirm("ATENÇÃO: Isso apagará todos os seus registros, sintomas e configurações permanentemente. Tem certeza?");
+    if (confirmed) {
+      localStorage.removeItem('luna_logs_v5');
+      localStorage.removeItem('luna_settings_v5');
+      setLogs({});
+      setSettings({
+        userName: '',
+        avgCycleLength: 28,
+        avgPeriodLength: 5,
+        lastPeriodStartManual: undefined,
+        theme: 'rose'
+      });
+      setActiveScreen('inicio');
+      alert("Todos os dados foram resetados.");
+    }
   };
 
   const renderScreen = () => {
@@ -107,40 +164,50 @@ const App: React.FC = () => {
       case 'inicio':
         return (
           <div className="space-y-8 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <section className="bg-white rounded-[3.5rem] p-12 text-center shadow-[0_20px_50px_rgba(193,140,142,0.15)] border border-theme-soft relative overflow-hidden">
-               <div className="absolute top-0 left-0 w-full h-1.5 bg-[#c18c8e]"></div>
-               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-theme-primary opacity-60 mb-6">
-                 Bem-vinda, {appName}
+            <section className="bg-white rounded-[3rem] p-10 text-center shadow-2xl border border-theme-soft relative overflow-hidden">
+               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-theme-primary to-indigo-400"></div>
+               <h2 className="text-[10px] font-black uppercase tracking-widest text-theme-primary opacity-70 mb-4">
+                 Olá, {appName}! ✨
                </h2>
-               <div className="text-6xl font-serif font-black text-gray-800 leading-tight">
+               <div className="text-5xl font-serif font-black text-gray-800 leading-tight">
                  {nextPeriodIn !== null ? (
-                   nextPeriodIn > 0 ? <><span className="text-theme-primary">{nextPeriodIn}</span><span className="text-3xl ml-2 text-gray-400">dias</span></> : 
-                   nextPeriodIn === 0 ? <span className="text-theme-primary text-4xl">Chegou hoje! 🩸</span> : <span className="text-orange-400 text-4xl">Atrasada</span>
-                 ) : "Olá! ✨"}
+                   nextPeriodIn > 0 ? <><span className="text-theme-primary">{nextPeriodIn}</span> dias</> : 
+                   nextPeriodIn === 0 ? <span className="text-theme-primary">Menstruação hoje! 🩸</span> : <span className="text-orange-600">Atrasada</span>
+                 ) : "Bem-vinda!"}
                </div>
-               <p className="mt-8 text-gray-500 font-bold text-sm tracking-wide">
-                 {nextPeriodIn !== null ? `Seu próximo ciclo começa em ${format(parseISO(stats.nextPeriodDate!), "dd/MM", { locale: ptBR })}` : "Toque no calendário para começar seu registro."}
-               </p>
+               <div className="mt-6 flex flex-col items-center gap-2">
+                 <p className="text-gray-600 font-extrabold text-sm">
+                   {nextPeriodIn !== null ? `Próximo ciclo: ${format(parseISO(stats.nextPeriodDate!), "dd/MM", { locale: ptBR })}` : "Configure seu ciclo no perfil."}
+                 </p>
+                 {currentPregnancyChance && (
+                   <div className="mt-2 px-4 py-2 bg-theme-light rounded-full border border-theme-soft">
+                     <p className="text-[10px] font-black uppercase tracking-widest text-theme-primary mb-0.5">Chance de Engravidar</p>
+                     <p className={`text-sm font-black ${currentPregnancyChance === 'Alta' ? 'text-rose-600' : currentPregnancyChance === 'Média' ? 'text-teal-600' : 'text-gray-400'}`}>
+                       {currentPregnancyChance}
+                     </p>
+                   </div>
+                 )}
+               </div>
             </section>
 
             {currentPhase && (
-              <section className={`rounded-[3rem] p-10 text-white shadow-2xl ${CYCLE_PHASES[currentPhase].color === 'bg-rose-500' ? 'bg-[#c18c8e]' : CYCLE_PHASES[currentPhase].color} transition-all`}>
-                <div className="flex justify-between items-center mb-6">
-                   <h3 className="text-3xl font-serif font-black">{CYCLE_PHASES[currentPhase].name}</h3>
-                   <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-2xl">
-                     {currentPhase === 'menstrual' ? '🌙' : currentPhase === 'folicular' ? '🌱' : currentPhase === 'ovulatoria' ? '🌸' : '✨'}
-                   </div>
+              <section className={`rounded-[2.5rem] p-8 text-white shadow-2xl ${CYCLE_PHASES[currentPhase].color} transition-all border-b-8 border-black/10`}>
+                <div className="flex justify-between items-center mb-4">
+                   <h3 className="text-2xl font-serif font-black">{CYCLE_PHASES[currentPhase].name}</h3>
+                   <span className="text-3xl">
+                     {currentPhase === 'menstrual' ? '🩸' : currentPhase === 'folicular' ? '🌱' : currentPhase === 'ovulatoria' ? '🌸' : '🌙'}
+                   </span>
                 </div>
-                <p className="text-white/90 text-sm leading-relaxed mb-8 font-medium">{CYCLE_PHASES[currentPhase].description}</p>
-                <div className="bg-white/10 backdrop-blur-md p-6 rounded-[2rem] border border-white/20">
-                   <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/70 mb-2">Sugestão Luna</p>
-                   <p className="font-bold text-white text-base">{CYCLE_PHASES[currentPhase].advice}</p>
+                <p className="text-white text-sm leading-relaxed mb-6 font-bold">{CYCLE_PHASES[currentPhase].description}</p>
+                <div className="bg-black/15 backdrop-blur-md p-5 rounded-3xl border border-white/30">
+                   <p className="text-[9px] font-black uppercase tracking-widest text-white/80 mb-1 font-bold">Dica para você</p>
+                   <p className="font-black text-white">{CYCLE_PHASES[currentPhase].advice}</p>
                 </div>
               </section>
             )}
 
-            <Button size="lg" className="w-full rounded-[3rem] h-24 text-xl uppercase tracking-[0.2em] shadow-xl" onClick={() => setActiveScreen('calendario')}>
-                Abrir Calendário
+            <Button size="lg" className="w-full rounded-[2.5rem] h-20 text-xl uppercase tracking-widest shadow-2xl" onClick={() => setActiveScreen('calendario')}>
+                Ver Calendário
             </Button>
           </div>
         );
@@ -148,24 +215,24 @@ const App: React.FC = () => {
       case 'calendario':
         return (
           <div className="space-y-6 pb-32 animate-in fade-in duration-500">
-            <section className="bg-white rounded-[3.5rem] p-8 shadow-2xl border border-theme-soft">
-              <div className="flex items-center justify-between mb-10">
+            <section className="bg-white rounded-[2.5rem] p-6 shadow-2xl border border-theme-soft">
+              <div className="flex items-center justify-between mb-8">
                 <h3 className="text-2xl font-serif font-black text-gray-800 capitalize px-2">
                   {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
                 </h3>
-                <div className="flex gap-3">
-                  <button onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="w-12 h-12 flex items-center justify-center bg-theme-light text-theme-primary rounded-2xl border border-theme-soft active:scale-90 transition-all">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
+                <div className="flex gap-2">
+                  <button onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="w-12 h-12 flex items-center justify-center bg-theme-primary text-white rounded-2xl shadow-lg active:scale-90 transition-all">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M15 19l-7-7 7-7" /></svg>
                   </button>
-                  <button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="w-12 h-12 flex items-center justify-center bg-theme-light text-theme-primary rounded-2xl border border-theme-soft active:scale-90 transition-all">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                  <button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="w-12 h-12 flex items-center justify-center bg-theme-primary text-white rounded-2xl shadow-lg active:scale-90 transition-all">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M9 5l7 7-7 7" /></svg>
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-7 gap-3">
+              <div className="grid grid-cols-7 gap-2">
                 {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(d => (
-                  <div key={d} className="text-center py-2 text-[10px] font-black text-theme-primary/40 uppercase tracking-widest">{d}</div>
+                  <div key={d} className="text-center py-2 text-[10px] font-black text-theme-primary uppercase">{d}</div>
                 ))}
                 {calendarDays.map(day => {
                   const status = getDayStatus(day);
@@ -177,18 +244,21 @@ const App: React.FC = () => {
                       key={status.dKey}
                       onClick={() => handleDayClick(status.dKey)}
                       className={`
-                        relative flex flex-col items-center justify-center h-16 sm:h-20 rounded-[1.5rem] transition-all duration-300 border-2
-                        ${!active ? 'opacity-10' : 'opacity-100'}
+                        relative flex flex-col items-center justify-center h-16 sm:h-20 rounded-2xl transition-all duration-300 border-2
+                        ${!active ? 'opacity-20' : 'opacity-100'}
                         ${status.isMenstruation ? 'bg-theme-primary border-theme-primary text-white shadow-xl scale-105 z-10' : 
-                          status.isOvulation ? 'bg-[#d49da0] border-[#d49da0] text-white shadow-lg scale-105 z-10' :
-                          status.isFertile ? 'bg-theme-light border-theme-soft text-theme-primary' :
-                          status.isPredicted ? 'bg-white border-theme-soft border-dashed text-theme-primary/30' :
-                          'bg-gray-50 border-transparent text-gray-400 hover:bg-white hover:border-theme-soft'}
-                        ${isCur ? 'ring-4 ring-theme-primary/20 ring-offset-2 animate-today' : ''}
+                          status.isOvulation ? 'bg-teal-500 border-teal-400 text-white shadow-xl scale-105 z-10' :
+                          status.isFertile ? 'bg-teal-50 border-teal-200 text-teal-700' :
+                          status.isPredicted ? 'bg-rose-50 border-rose-200 border-dashed text-rose-400' :
+                          'bg-gray-100 border-transparent text-gray-800 hover:bg-white hover:border-theme-soft'}
+                        ${isCur ? 'ring-4 ring-theme-primary/30 ring-offset-2 animate-today' : ''}
                       `}
                     >
-                      <span className="text-xs sm:text-sm font-black">{format(day, 'd')}</span>
-                      {status.isMenstruation && <div className="absolute bottom-2 w-1 h-1 rounded-full bg-white"></div>}
+                      <span className="text-xs sm:text-sm font-black mb-1">{format(day, 'd')}</span>
+                      <div className="flex items-center justify-center h-4">
+                        {status.isMenstruation && <span className="text-base">🩸</span>}
+                        {status.isOvulation && <span className="text-base">🌸</span>}
+                      </div>
                     </button>
                   );
                 })}
@@ -198,27 +268,26 @@ const App: React.FC = () => {
         );
 
       case 'historico':
-        const historyLogs = (Object.values(logs) as DayLog[]).sort((a, b) => b.date.localeCompare(a.date));
+        const historyLogs = (Object.values(logs) as DayLog[]).sort((a: DayLog, b: DayLog) => b.date.localeCompare(a.date));
         return (
           <div className="space-y-6 pb-32 animate-in slide-in-from-right-4 duration-500">
-             <h3 className="text-3xl font-serif font-black text-theme-primary px-2">Diário</h3>
+             <h3 className="text-3xl font-serif font-black text-theme-primary px-2">Histórico de {appName}</h3>
              {historyLogs.length === 0 ? (
-               <div className="p-20 text-center text-gray-300 font-bold bg-white rounded-[3.5rem] border-4 border-dashed border-gray-50">
-                 Seu diário está em branco.<br/>Comece registrando hoje.
+               <div className="p-16 text-center text-gray-400 font-bold bg-white rounded-[3rem] border-4 border-dashed border-gray-100">
+                 Sem registros salvos.<br/>Toque no calendário para começar.
                </div>
              ) : (
                historyLogs.map(log => (
-                 <div key={log.date} onClick={() => handleDayClick(log.date)} className="bg-white p-8 rounded-[2.5rem] shadow-lg border border-theme-soft flex items-center justify-between hover:shadow-2xl transition-all cursor-pointer">
+                 <div key={log.date} onClick={() => handleDayClick(log.date)} className="bg-white p-6 rounded-[2rem] shadow-xl border border-theme-soft flex items-center justify-between group cursor-pointer hover:shadow-2xl transition-all">
                     <div className="flex-1">
-                      <p className="text-[10px] font-black text-theme-primary uppercase tracking-widest">{format(parseISO(log.date), "dd 'de' MMMM", { locale: ptBR })}</p>
-                      <h4 className="text-xl font-black text-gray-800 mt-1">{log.isPeriod ? "Menstruação 🩸" : "Notas do Dia"}</h4>
-                      <div className="flex flex-wrap gap-2 mt-4">
-                        {log.moods.slice(0, 3).map(m => <span key={m} className="px-3 py-1 bg-theme-light text-theme-primary text-[9px] font-black rounded-full uppercase border border-theme-soft">{m}</span>)}
+                      <p className="text-[10px] font-black text-theme-primary uppercase">{format(parseISO(log.date), "dd 'de' MMMM", { locale: ptBR })}</p>
+                      <h4 className="text-xl font-black text-gray-800">{log.isPeriod ? "Menstruação Ativa 🩸" : "Registros do Dia ✨"}</h4>
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {log.moods.map(m => <span key={m} className="px-3 py-1 bg-amber-400 text-white text-[9px] font-black rounded-full uppercase shadow-sm">{m}</span>)}
+                        {log.symptoms.length > 0 && <span className="px-3 py-1 bg-gray-100 text-gray-500 text-[9px] font-black rounded-full uppercase">{log.symptoms.length} sintomas</span>}
                       </div>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-300">
-                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
-                    </div>
+                    <Button variant="secondary" size="sm" className="ml-4 font-black">EDITAR</Button>
                  </div>
                ))
              )}
@@ -228,22 +297,79 @@ const App: React.FC = () => {
       case 'ajustes':
         return (
           <div className="space-y-8 pb-32 animate-in fade-in duration-500">
-             <h3 className="text-3xl font-serif font-black text-theme-primary px-2">Perfil</h3>
-             <div className="bg-white rounded-[3.5rem] p-10 shadow-2xl border border-theme-soft space-y-12">
-                <section className="space-y-4">
-                  <label className="text-[10px] font-black uppercase text-theme-primary tracking-[0.2em] block">Seu Nome</label>
-                  <input type="text" value={settings.userName || ''} onChange={e => setSettings(p => ({...p, userName: e.target.value}))} className="w-full h-18 px-8 rounded-2xl bg-gray-50 border-2 border-transparent font-black text-gray-800 focus:bg-white focus:border-theme-primary outline-none transition-all" placeholder="Como quer ser chamada?" />
+             <h3 className="text-3xl font-serif font-black text-theme-primary px-2">Configurações</h3>
+             
+             <div className="bg-white rounded-[2.5rem] p-8 shadow-2xl border border-theme-soft space-y-10">
+                {/* Nome do Usuário */}
+                <section className="space-y-3">
+                  <label className="text-[10px] font-black uppercase text-theme-primary tracking-widest block font-black">Como quer ser chamada?</label>
+                  <input 
+                    type="text" 
+                    placeholder="Seu nome aqui..."
+                    value={settings.userName || ''} 
+                    onChange={e => setSettings(p => ({...p, userName: e.target.value}))} 
+                    className="w-full h-16 px-6 rounded-2xl bg-gray-50 border-2 border-gray-100 font-black text-gray-800 focus:border-theme-primary outline-none transition-all" 
+                  />
                 </section>
-                <section className="space-y-6">
-                  <div className="flex justify-between items-center bg-theme-light p-6 rounded-3xl border border-theme-soft">
-                    <span className="text-sm font-black text-theme-primary uppercase tracking-wider">Ciclo Médio</span>
-                    <input type="number" value={settings.avgCycleLength} onChange={e => setSettings(p => ({...p, avgCycleLength: parseInt(e.target.value) || 28}))} className="w-16 bg-transparent text-right font-black text-theme-primary text-xl outline-none" />
+
+                {/* Segurança e Dados */}
+                <section className="bg-theme-light p-6 rounded-[2rem] border-2 border-theme-soft">
+                  <h4 className="text-[10px] font-black uppercase text-theme-primary tracking-widest mb-4">Segurança e Backup</h4>
+                  <p className="text-xs font-bold text-gray-600 mb-6">Seus dados são salvos apenas neste celular. Para não perdê-los ao trocar de aparelho, faça um backup.</p>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button variant="primary" size="sm" className="w-full text-[10px]" onClick={exportBackup}>
+                      EXPORTAR BACKUP
+                    </Button>
+                    <Button variant="outline" size="sm" className="w-full text-[10px]" onClick={() => fileInputRef.current?.click()}>
+                      IMPORTAR BACKUP
+                    </Button>
+                    <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={importBackup} />
                   </div>
                 </section>
-                <div className="pt-8">
-                  <Button className="w-full h-20 rounded-[2.5rem] font-black text-lg" onClick={() => setActiveScreen('inicio')}>Salvar Alterações ✨</Button>
+
+                <section>
+                    <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-6">Cor do Aplicativo</label>
+                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                        {(Object.keys(THEMES) as AppTheme[]).map((t) => (
+                            <button
+                                key={t}
+                                onClick={() => setSettings(p => ({ ...p, theme: t }))}
+                                className={`flex-shrink-0 w-14 h-14 rounded-2xl border-4 transition-all ${settings.theme === t ? 'scale-110 border-gray-800 shadow-2xl' : 'border-transparent opacity-50'}`}
+                                style={{ backgroundColor: THEMES[t].primary }}
+                            />
+                        ))}
+                    </div>
+                </section>
+
+                <div className="space-y-6">
+                   <div className="space-y-3">
+                      <label className="text-[10px] font-black uppercase text-theme-primary tracking-widest block font-black">Ciclo Médio (Dias)</label>
+                      <input type="number" value={settings.avgCycleLength} onChange={e => setSettings(p => ({...p, avgCycleLength: parseInt(e.target.value) || 28}))} className="w-full h-16 px-6 rounded-2xl bg-gray-50 border-2 border-gray-100 font-black text-gray-800 focus:border-theme-primary outline-none transition-all" />
+                   </div>
+                   <div className="space-y-3">
+                      <label className="text-[10px] font-black uppercase text-theme-primary tracking-widest block font-black">Data da última Menstruação</label>
+                      <input type="date" value={settings.lastPeriodStartManual || ''} onChange={e => setSettings(p => ({...p, lastPeriodStartManual: e.target.value}))} className="w-full h-16 px-6 rounded-2xl bg-gray-50 border-2 border-gray-100 font-black text-gray-800 focus:border-theme-primary outline-none transition-all" />
+                   </div>
                 </div>
-                <p className="text-[10px] text-center font-bold text-gray-300 uppercase tracking-[0.3em] pt-10">Luna • Privacidade Absoluta</p>
+
+                <div className="pt-4 space-y-4">
+                  <Button className="w-full h-20 rounded-[2rem] font-black text-lg shadow-2xl" onClick={() => alert('Configurações salvas localmente! ✨')}>
+                    SALVAR TUDO
+                  </Button>
+                  
+                  <div className="pt-10">
+                    <p className="text-[10px] font-black uppercase text-red-500 tracking-widest block mb-4">Zona de Perigo</p>
+                    <button 
+                      onClick={resetAllData}
+                      className="w-full py-4 rounded-2xl border-2 border-red-100 text-red-500 text-xs font-black uppercase tracking-widest hover:bg-red-50 transition-colors"
+                    >
+                      Resetar todos os dados do App
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-[9px] text-center font-bold text-gray-300 uppercase tracking-widest">BY RENATO LUNA 2.0 PRE ALFA • Dados 100% Privados</p>
              </div>
           </div>
         );
@@ -253,15 +379,15 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen transition-all duration-500" style={{ backgroundColor: 'var(--bg-app)' }}>
+    <div className="min-h-screen transition-all duration-500 overflow-x-hidden" style={{ backgroundColor: 'var(--bg-app)' }}>
       <header className="px-8 py-12 flex items-center justify-between max-w-2xl mx-auto">
-        <div className="flex items-center gap-5 cursor-pointer" onClick={() => setActiveScreen('inicio')}>
-          <Logo className="w-16 h-16 shadow-2xl bg-white rounded-full" />
-          <LunaBrandText />
+        <div className="flex items-center gap-4 cursor-pointer" onClick={() => setActiveScreen('inicio')}>
+          <div className="w-12 h-12 bg-theme-primary rounded-2xl flex items-center justify-center text-white shadow-2xl rotate-6 border-b-4 border-black/20">
+             <span className="text-2xl font-serif font-black">{(appName[0] || 'L').toUpperCase()}</span>
+          </div>
+          <h1 className="text-3xl font-serif font-black text-gray-800 tracking-tight">{appName}</h1>
         </div>
-        <div className="w-10 h-10 flex items-center justify-center bg-theme-light rounded-full border border-theme-soft text-theme-primary">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-        </div>
+        <div className="text-[9px] font-black text-theme-primary/50 uppercase tracking-[0.2em]">Salvamento Ativo</div>
       </header>
 
       <main className="max-w-2xl mx-auto px-6">
@@ -269,32 +395,41 @@ const App: React.FC = () => {
       </main>
 
       {isQuickViewOpen && selectedDate && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-8 bg-black/40 backdrop-blur-xl animate-in fade-in">
-           <div className="bg-white rounded-[3.5rem] w-full max-w-sm p-12 shadow-2xl relative border-t-[12px] border-theme-primary">
-              <button onClick={() => setIsQuickViewOpen(false)} className="absolute top-8 right-8 text-gray-300 hover:text-theme-primary">
-                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M6 18L18 6M6 6l12 12" /></svg>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-8 bg-black/60 backdrop-blur-lg animate-in fade-in">
+           <div className="bg-white rounded-[3rem] w-full max-w-sm p-12 shadow-2xl relative animate-in zoom-in-95 border-t-8 border-theme-primary">
+              <button onClick={() => setIsQuickViewOpen(false)} className="absolute top-8 right-8 text-gray-300 hover:text-theme-primary transition-colors">
+                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
-              <div className="mb-10 text-center">
-                <p className="text-[10px] font-black text-theme-primary uppercase tracking-[0.2em] mb-4">
+
+              <div className="mb-10">
+                <p className="text-[11px] font-black text-theme-primary uppercase tracking-widest mb-3">
                   {format(parseISO(selectedDate), "EEEE, dd/MM", { locale: ptBR })}
                 </p>
                 <h4 className="text-4xl font-serif font-black text-gray-800 leading-tight">
-                  {getDayStatus(parseISO(selectedDate)).isMenstruation ? "Seu Ciclo 🩸" : "Dia de Luna ✨"}
+                  {getDayStatus(parseISO(selectedDate)).isMenstruation ? "Sua Menstruação 🩸" : `Dia de ${appName} ✨`}
                 </h4>
+                
+                <div className="mt-6 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Chance de Engravidar</p>
+                  <p className={`text-lg font-black ${getDayStatus(parseISO(selectedDate)).pregnancyChance === 'Alta' ? 'text-rose-600' : getDayStatus(parseISO(selectedDate)).pregnancyChance === 'Média' ? 'text-teal-600' : 'text-gray-400'}`}>
+                    {getDayStatus(parseISO(selectedDate)).pregnancyChance}
+                  </p>
+                </div>
               </div>
+
               <div className="flex flex-col gap-4">
-                <Button className="w-full h-20 rounded-[2.5rem] text-base font-black uppercase tracking-widest" onClick={() => { setIsModalOpen(true); setIsQuickViewOpen(false); }}>
+                <Button className="w-full h-20 rounded-[2rem] text-lg font-black uppercase shadow-xl" onClick={() => { setIsModalOpen(true); setIsQuickViewOpen(false); }}>
                   Anotar Sintomas
                 </Button>
-                <button onClick={() => setIsQuickViewOpen(false)} className="w-full py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Fechar</button>
+                <button onClick={() => setIsQuickViewOpen(false)} className="w-full py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-theme-primary">Voltar</button>
               </div>
            </div>
         </div>
       )}
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 px-6 pb-8 pointer-events-none">
-        <div className="glass-nav rounded-[3rem] shadow-2xl p-3 flex justify-between items-center max-w-md mx-auto pointer-events-auto border border-theme-soft/30">
-          <NavItem active={activeScreen === 'inicio'} onClick={() => setActiveScreen('inicio')} label="Início" icon="🏠" />
+        <div className="glass-nav rounded-[3rem] shadow-[0_-15px_40px_rgba(0,0,0,0.08)] p-2.5 flex justify-between items-center max-w-md mx-auto pointer-events-auto border-4 border-white/50">
+          <NavItem active={activeScreen === 'inicio'} onClick={() => setActiveScreen('inicio')} label="Home" icon="🏠" />
           <NavItem active={activeScreen === 'calendario'} onClick={() => setActiveScreen('calendario')} label="Agenda" icon="📅" />
           <NavItem active={activeScreen === 'historico'} onClick={() => setActiveScreen('historico')} label="Diário" icon="📖" />
           <NavItem active={activeScreen === 'ajustes'} onClick={() => setActiveScreen('ajustes')} label="Perfil" icon="👤" />
@@ -315,9 +450,9 @@ const App: React.FC = () => {
 };
 
 const NavItem: React.FC<{ active: boolean; onClick: () => void; icon: string; label: string }> = ({ active, onClick, icon, label }) => (
-  <button onClick={onClick} className={`flex flex-col items-center gap-1 px-5 py-4 rounded-[2.5rem] transition-all duration-300 ${active ? 'bg-theme-primary text-white scale-105 shadow-xl' : 'text-gray-300 hover:text-theme-primary hover:bg-theme-light'}`}>
+  <button onClick={onClick} className={`flex flex-col items-center gap-1.5 px-6 py-4 rounded-[2.5rem] transition-all duration-300 ${active ? 'bg-theme-primary text-white scale-110 shadow-2xl shadow-theme-primary/30' : 'text-gray-400 hover:text-theme-primary hover:bg-theme-light'}`}>
     <span className="text-2xl">{icon}</span>
-    <span className={`text-[7px] font-black uppercase tracking-widest ${active ? 'block' : 'hidden'}`}>{label}</span>
+    <span className={`text-[8px] font-black uppercase tracking-[0.1em] ${active ? 'block' : 'hidden'}`}>{label}</span>
   </button>
 );
 
