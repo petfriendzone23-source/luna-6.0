@@ -73,14 +73,33 @@ export interface CycleStats {
   currentDayOfCycle: number | null;
 }
 
-export const SYMPTOMS = [
-  "Cólica 😫", "Inchaço 🎈", "Dor de Cabeça 🤕", "Acne 🧼", "Dor Lombar ⚡", 
-  "Seios Sensíveis 🍒", "Fadiga 😴", "Náusea 🤢", "Insônia 🦉", "Desejos Doces 🍫",
-  "Tontura 😵", "Calafrios 🥶", "Ansiedade 😟", "Foco Baixo 🌫️"
+// Estrutura rica para renderização visual superior
+export const SYMPTOMS_DATA = [
+  { id: 'colica', label: 'Cólica', icon: '🩸', color: 'rose' },
+  { id: 'inchaco', label: 'Inchaço', icon: '🎈', color: 'amber' },
+  { id: 'cabeca', label: 'Cabeça', icon: '🤕', color: 'violet' },
+  { id: 'acne', label: 'Acne', icon: '🧼', color: 'sky' },
+  { id: 'lombar', label: 'Lombar', icon: '⚡', color: 'orange' },
+  { id: 'seios', label: 'Seios', icon: '🍒', color: 'pink' },
+  { id: 'fadiga', label: 'Fadiga', icon: '😴', color: 'indigo' },
+  { id: 'nausea', label: 'Náusea', icon: '🤢', color: 'emerald' },
+  { id: 'insonia', label: 'Insônia', icon: '🦉', color: 'slate' },
+  { id: 'doces', label: 'Doces', icon: '🍫', color: 'rose' },
+  { id: 'tontura', label: 'Tontura', icon: '😵', color: 'cyan' },
+  { id: 'foco', label: 'Foco Baixo', icon: '🌫️', color: 'zinc' }
 ];
 
-export const MOODS = [
-  "Feliz 😊", "Triste 😢", "Ansiosa 😰", "Irritada 😡", "Calma 🧘", 
-  "Energizada ⚡", "Cansada 😴", "Sensível 🥺", "Frustrada 😤", "Produtiva 📈",
-  "Inspirada ✨", "Preguiçosa 🦥", "Amorosa 🥰", "Distante ☁️"
+export const MOODS_DATA = [
+  { id: 'feliz', label: 'Feliz', icon: '😊', color: 'amber' },
+  { id: 'triste', label: 'Triste', icon: '😢', color: 'sky' },
+  { id: 'ansiosa', label: 'Ansiosa', icon: '😰', color: 'violet' },
+  { id: 'irritada', label: 'Irritada', icon: '😡', color: 'rose' },
+  { id: 'calma', label: 'Calma', icon: '🧘', color: 'emerald' },
+  { id: 'produtiva', label: 'Ativa', icon: '📈', color: 'indigo' },
+  { id: 'sensivel', label: 'Sensível', icon: '🥺', color: 'pink' },
+  { id: 'cansada', label: 'Exausta', icon: '😴', color: 'slate' }
 ];
+
+// Fallback para compatibilidade com logs antigos
+export const SYMPTOMS = SYMPTOMS_DATA.map(s => `${s.label} ${s.icon}`);
+export const MOODS = MOODS_DATA.map(m => `${m.label} ${m.icon}`);
