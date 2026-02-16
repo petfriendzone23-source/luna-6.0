@@ -45,14 +45,14 @@ export const CYCLE_PHASES: Record<CyclePhaseType, PhaseInfo> = {
 };
 
 export interface DayLog {
-  date: string; // Formato ISO YYYY-MM-DD
+  date: string;
   isPeriod: boolean;
   intensity?: FlowIntensity;
   symptoms: string[];
   moods: string[];
   notes?: string;
-  medicalNotes?: string; // Notas médicas importantes
-  waterIntake?: number; // em copos
+  medicalNotes?: string;
+  waterIntake?: number;
   sleepHours?: number;
 }
 
@@ -74,13 +74,13 @@ export interface CycleStats {
 }
 
 export const SYMPTOMS = [
-  "🩸 Cólica", "🎈 Inchaço", "🤕 Dor de Cabeça", "✨ Acne", "💥 Dor Lombar", 
-  "🍒 Seios Sensíveis", "🔋 Fadiga", "🤢 Náusea", "👁️ Insônia", "🍫 Desejos Doces",
-  "🌀 Tontura", "🥶 Calafrios", "😟 Ansiedade", "🧠 Foco Baixo"
+  "Cólica", "Inchaço", "Dor de Cabeça", "Acne", "Dor Lombar", 
+  "Seios Sensíveis", "Fadiga", "Náusea", "Insônia", "Desejos Doces",
+  "Tontura", "Calafrios", "Ansiedade", "Foco Baixo"
 ];
 
 export const MOODS = [
-  "😊 Feliz", "😢 Triste", "😰 Ansiosa", "😠 Irritada", "🧘 Calma", 
-  "⚡ Energizada", "😴 Cansada", "🥺 Sensível", "😣 Frustrada", "🎯 Produtiva",
-  "✨ Inspirada", "🦥 Preguiçosa", "💖 Amorosa", "☁️ Distante"
+  "Feliz", "Triste", "Ansiosa", "Irritada", "Calma", 
+  "Energizada", "Cansada", "Sensível", "Frustrada", "Produtiva",
+  "Inspirada", "Preguiçosa", "Amorosa", "Distante"
 ];
