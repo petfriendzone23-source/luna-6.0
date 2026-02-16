@@ -6,6 +6,24 @@
     <meta name="theme-color" content="#fffafb">
     <title>Luna - Controle Menstrual</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'theme-primary': 'var(--primary)',
+              'theme-light': 'var(--primary-light)',
+              'theme-soft': 'var(--primary-soft)',
+              'theme-bg': 'var(--bg-app)',
+            },
+            fontFamily: {
+              sans: ['Plus Jakarta Sans', 'sans-serif'],
+              serif: ['Playfair Display', 'serif'],
+            },
+          }
+        }
+      }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -16,13 +34,10 @@
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-app);
             color: #1f2937;
             -webkit-tap-highlight-color: transparent;
         }
-
-        .font-serif { font-family: 'Playfair Display', serif; }
 
         @keyframes pulse-ring {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
@@ -32,10 +47,10 @@
         .animate-today { animation: pulse-ring 2s infinite; }
 
         .glass-nav {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
         }
         
         ::-webkit-scrollbar { display: none; }
